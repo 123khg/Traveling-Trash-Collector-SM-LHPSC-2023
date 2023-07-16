@@ -57,7 +57,7 @@ def UI(drawMap, quantity, w, h):
                 pg.draw.rect(screen, (100, 100, 100), pg.Rect(w/8*col, h/8*row, w/8, h/8))
                 
 mapIndex = 0
-quantity = 30
+quantity = 50
 gameMapGen = createMap(quantity)
 while run:
     screen.fill((255, 255, 255))
@@ -68,17 +68,18 @@ while run:
     for event in pg.event.get():
         if event.type == pg.QUIT:
             run = False
-                  
-        if mapIndex < 0:
-            mapIndex = quantity - 1
-        elif mapIndex >= quantity:
-            mapIndex = 0
-            
+                 
         if event.type == pg.KEYDOWN:
-            if event.key == pg.K_LEFT or event.key == pg.K_A:
+            if event.key == pg.K_LEFT or event.key == pg.K_a:
                 mapIndex -= 1
-            elif event.key == pg.K_RIGHT or event.key == pg.K_D:
+            elif event.key == pg.K_RIGHT or event.key == pg.K_d:
                 mapIndex += 1
+            
+            #LIMITS
+            if mapIndex < 0:
+                mapIndex = quantity - 1
+            elif mapIndex >= quantity:
+                mapIndex = 0
             
             #OUTPUTS MAP
             for row in gameMapGen[mapIndex]:

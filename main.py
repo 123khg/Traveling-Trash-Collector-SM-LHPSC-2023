@@ -6,10 +6,11 @@ import numpy as np, pygame as pg, time
 import os
 pg.init()
 
-w, h = 650, 650
+#PYGAME SETTINGS
+w, h = 700, 700
 screen = pg.display.set_mode([w, h])
-run = True
-verbose = False
+trash = pg.image.load("trash.png").convert_alpha()
+iceberg = pg.image.load("iceberg.png").convert_alpha()
 
 #CREATE MAP
 def createMap(times, size, generate_ratio: list):
@@ -36,42 +37,76 @@ def createMap(times, size, generate_ratio: list):
     
     return gameMapGen
 
+#RESCALE IMAGE
+def Rescale(img, imgSize, w, h, size, gridThickness):
+    imgW, imgH = imgSize
+    if imgW < imgH:
+        img = pg.transform.scale(img, (imgW/imgH * (w/size-gridThickness), h/size-gridThickness))
+    else:
+        img = pg.transform.scale(img, (w/size-gridThickness, imgH/imgW * (h/size-gridThickness)))
+    return img
+
 #DRAW UI
-def UI(drawMap, w, h, size):
+def UI(drawMap, w, h, size, gridThickness, trash, iceberg):
     #GRID LINES
     for i in range(size + 1):
         x = 0 + w/size * i
         y = 0 + h/size * i
-        pg.draw.line(screen, (0, 0, 0), (x, 0), (x, h), 5)
-        pg.draw.line(screen, (0, 0, 0), (0, y), (w, y), 5)
+        pg.draw.line(screen, (0, 0, 0), (x, 0), (x, h), gridThickness)
+        pg.draw.line(screen, (0, 0, 0), (0, y), (w, y), gridThickness)
     
     #DRAW OBSTACLES
     for row in range(size):
         for col in range(size):
+            x = w/size*col
+            y = h/size*row
+            #TRASH
             if drawMap[row][col] == 'T':
-                pg.draw.circle(screen, (252, 186, 3), (w/size*(col+1/2), h/size*(row+1/2)), w/(size*2)-2)
+                screen.blit(trash, (x + round((w/size-trash.get_size()[0])/2), y + round((h/size-trash.get_size()[1])/2)))
+                #print(w/size, h/size, trash.get_size(), round((h/size-trash.get_size()[1]))/2, round((h/size-trash.get_size()[1]))/3)
+                #pg.draw.circle(screen, (250, 250, 0), (w/size*(col+1/2), h/size*(row+1/2)), w/(size*2)-2)
+            
+            #BLOCK
             elif drawMap[row][col] == 'B':
-                pg.draw.circle(screen, (255, 0, 0), (w/size*(col+1/2), h/size*(row+1/2)), w/(size*2)-2)
+                screen.blit(iceberg, (x + round((w/size-iceberg.get_size()[0])/2), y + round((h/size-iceberg.get_size()[1])/2)))
+                #pg.draw.circle(screen, (200, 0, 0), (w/size*(col+1/2), h/size*(row+1/2)), w/(size*2)-2)
+
+            #AIR
             elif drawMap[row][col] == ' ':
                 continue
+
+            #WALL
             else:
                 #print(w/8*(col-1), h/8*(row-1), w/8, h/8)
-                pg.draw.rect(screen, (100, 100, 100), pg.Rect(w/size*col+2, h/size*row+2, w/size-3, h/size-3))
+                pg.draw.rect(screen, (100, 100, 100), pg.Rect(x + np.ceil(gridThickness/2), y + np.ceil(gridThickness/2), w/size-np.round(gridThickness/2), h/size-np.round(gridThickness/2)))
 
 def main():
-    global run, verbose
+    global trash, iceberg, w, h
+
+    #PROBABILITIES
     TRASH_RATIO = 0.02
     BLOCK_RATIO = 0.02
     WALL_RATIO = 0.1
     AIR_RATIO = 1 - TRASH_RATIO - BLOCK_RATIO - WALL_RATIO
-    mapIndex = 0
-    quantity = 30
-    size = 21
+
+    #PARAMETERS
+    mapIndex = 0 #Pointer to the current map displayed
+    quantity = 30 #How many maps to generate
+    size = 15 #Dimension of map
+    gridThickness = 1 #Width of grid in pixels (must be divisible by size to not get overlapping due to float calculations)
+    run = True
+    verbose = False #Prints out unicode map to output terminal
+    
+    #RESCALE IMAGE
+    trash = Rescale(trash, trash.get_size(), w, h, size, gridThickness)
+    iceberg = Rescale(iceberg, iceberg.get_size(), w, h, size, gridThickness)
+
+    #GENERATE
     gameMapGen = createMap(quantity, size, [TRASH_RATIO, BLOCK_RATIO, AIR_RATIO, WALL_RATIO])
     id = 1
     while run:
         screen.fill((3, 190, 252))
-        UI(gameMapGen[mapIndex], w, h, size)
+        UI(gameMapGen[mapIndex], w, h, size, gridThickness, trash, iceberg)
         
         #LOAD IMAGES TO FOLDER
         if id <= quantity:
@@ -94,6 +129,7 @@ def main():
                 if event.key == pg.K_v:
                     verbose = not verbose
                     print(f"Verbose set to {verbose}")
+                    
             #OUTPUTS MAP
             if verbose:
                 for row in gameMapGen[mapIndex]:

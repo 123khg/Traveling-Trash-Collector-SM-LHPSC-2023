@@ -6,8 +6,8 @@ import numpy as np, pygame as pg, time
 import os
 
 pg.init()
-os.makedirs("./generated/image")
-os.makedirs("./generated/data")
+os.makedirs("./generated/image", exist_ok=True)
+os.makedirs("./generated/data", exist_ok=True)
 
 # PYGAME SETTINGS
 w, h = 700, 700
@@ -126,7 +126,7 @@ def main():
     # PARAMETERS
     mapIndex = 0  # Pointer to the current map displayed
     quantity = 30  # How many maps to generate
-    size = 15  # Dimension of map
+    size = 10  # Dimension of map
     gridThickness = 1  # Width of grid in pixels (must be divisible by size to not get overlapping due to float calculations)
     run = True
     verbose = False  # Prints out unicode map to output terminal
